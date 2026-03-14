@@ -7,6 +7,7 @@ use App\Models\Transaction;
 use App\Policies\CategoryPolicy;
 use App\Policies\TransactionPolicy;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
     {
         foreach ($this->policies as $model => $policy) {
             Gate::policy($model, $policy);
+        }
+
+        // Force HTTPS in production
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
         }
     }
 }
