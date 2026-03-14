@@ -10,13 +10,12 @@
     <style>
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
         .font-display { font-family: 'Sora', sans-serif; }
-        /* === SIDEBAR: Dark Navy + Indigo/Emerald (match auth layout) === */
+
         .sidebar {
             background: #21262d;
             border-right: 1px solid rgba(255,255,255,0.06);
             box-shadow: 4px 0 24px rgba(0,0,0,0.3);
         }
-
         .nav-link {
             display: flex; align-items: center; gap: 12px;
             padding: 10px 14px; border-radius: 8px;
@@ -27,22 +26,15 @@
             box-sizing: border-box; letter-spacing: 0.01em;
             position: relative;
         }
-        .nav-link:hover {
-            color: #e6edf3;
-            background: rgba(255,255,255,0.07);
-        }
+        .nav-link:hover { color: #e6edf3; background: rgba(255,255,255,0.07); }
         .nav-link.active {
-            background: rgba(255,255,255,0.1);
-            color: #ffffff;
-            border-color: rgba(255,255,255,0.18);
-            font-weight: 600;
+            background: rgba(255,255,255,0.1); color: #ffffff;
+            border-color: rgba(255,255,255,0.18); font-weight: 600;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
         }
         .nav-link.active::before {
-            content: "";
-            position: absolute;
-            left: 0; top: 50%;
-            transform: translateY(-50%);
+            content: ""; position: absolute;
+            left: 0; top: 50%; transform: translateY(-50%);
             width: 3px; height: 55%;
             background: linear-gradient(180deg, #f1f5f9, #94a3b8);
             border-radius: 0 3px 3px 0;
@@ -76,6 +68,37 @@
         .form-input:focus { border-color: #a5b4fc; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
         .form-label { display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px; }
 
+        /* Mobile sidebar overlay */
+        #sidebar-overlay {
+            display: none;
+            position: fixed; inset: 0; z-index: 40;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(2px);
+        }
+        #sidebar-overlay.open { display: block; }
+
+        /* Desktop sidebar */
+        #sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0;
+            width: 240px; z-index: 50;
+            transform: translateX(-100%);
+            transition: transform 0.25s ease;
+            display: flex; flex-direction: column;
+            overflow-y: auto; padding: 24px 16px;
+        }
+        #sidebar.open { transform: translateX(0); }
+
+        @media (min-width: 768px) {
+            #sidebar {
+                position: relative;
+                transform: translateX(0) !important;
+                flex-shrink: 0;
+            }
+            #sidebar-overlay { display: none !important; }
+            #hamburger { display: none !important; }
+            .main-wrapper { margin-left: 0; }
+        }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -84,8 +107,11 @@
 <body class="h-full bg-slate-50">
 <div class="flex h-screen overflow-hidden">
 
+    <!-- Mobile Overlay -->
+    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
     <!-- Sidebar -->
-    <aside class="sidebar flex-shrink-0 flex flex-col overflow-y-auto" style="width:240px;padding:24px 16px;">
+    <aside id="sidebar" class="sidebar">
 
         <!-- Logo -->
         <div style="margin-bottom:28px;padding:0 8px;">
@@ -115,19 +141,19 @@
         <div style="flex:1;">
             <div style="font-size:10px;font-weight:700;color:#484f58;text-transform:uppercase;letter-spacing:0.12em;padding:0 8px;margin-bottom:8px;">Menu</div>
             <div style="display:flex;flex-direction:column;gap:3px;">
-                <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" onclick="closeSidebar()">
                     <span style="font-size:15px;flex-shrink:0;">🏠</span> Dashboard
                 </a>
-                <a href="{{ route('transactions.index') }}" class="nav-link {{ request()->routeIs('transactions.index') ? 'active' : '' }}">
+                <a href="{{ route('transactions.index') }}" class="nav-link {{ request()->routeIs('transactions.index') ? 'active' : '' }}" onclick="closeSidebar()">
                     <span style="font-size:15px;flex-shrink:0;">💳</span> Transaksi
                 </a>
-                <a href="{{ route('transactions.create') }}" class="nav-link {{ request()->routeIs('transactions.create') ? 'active' : '' }}">
+                <a href="{{ route('transactions.create') }}" class="nav-link {{ request()->routeIs('transactions.create') ? 'active' : '' }}" onclick="closeSidebar()">
                     <span style="font-size:15px;flex-shrink:0;">➕</span> Tambah Transaksi
                 </a>
-                <a href="{{ route('categories.index') }}" class="nav-link {{ request()->routeIs('categories.*') ? 'active' : '' }}">
+                <a href="{{ route('categories.index') }}" class="nav-link {{ request()->routeIs('categories.*') ? 'active' : '' }}" onclick="closeSidebar()">
                     <span style="font-size:15px;flex-shrink:0;">🏷️</span> Kategori
                 </a>
-                <a href="{{ route('investasi.index') }}" class="nav-link {{ request()->routeIs('investasi.*') ? 'active' : '' }}">
+                <a href="{{ route('investasi.index') }}" class="nav-link {{ request()->routeIs('investasi.*') ? 'active' : '' }}" onclick="closeSidebar()">
                     <span style="font-size:15px;flex-shrink:0;">📊</span> Keuangan
                 </a>
             </div>
@@ -145,27 +171,38 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto">
+    <main class="flex-1 overflow-y-auto" style="min-width:0;">
+
         <!-- Top Bar -->
-        <div style="position:sticky;top:0;z-index:10;background:rgba(248,250,252,0.9);backdrop-filter:blur(12px);border-bottom:1px solid #e2e8f0;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;">
-            <div>
-                <div class="font-display" style="font-size:18px;font-weight:700;color:#0f172a;">@yield('page-title', 'Dashboard')</div>
-                <div style="font-size:12px;color:#94a3b8;margin-top:2px;">{{ now()->translatedFormat('l, d F Y') }}</div>
+        <div style="position:sticky;top:0;z-index:10;background:rgba(248,250,252,0.9);backdrop-filter:blur(12px);border-bottom:1px solid #e2e8f0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                <!-- Hamburger (mobile only) -->
+                <button id="hamburger" onclick="openSidebar()" style="flex-shrink:0;width:36px;height:36px;border-radius:8px;background:#f1f5f9;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <rect x="2" y="4" width="14" height="1.5" rx="1" fill="#475569"/>
+                        <rect x="2" y="8.25" width="14" height="1.5" rx="1" fill="#475569"/>
+                        <rect x="2" y="12.5" width="14" height="1.5" rx="1" fill="#475569"/>
+                    </svg>
+                </button>
+                <div style="min-width:0;">
+                    <div class="font-display" style="font-size:17px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@yield('page-title', 'Dashboard')</div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:1px;">{{ now()->translatedFormat('l, d F Y') }}</div>
+                </div>
             </div>
-            <a href="{{ route('transactions.create') }}" class="btn-primary">
-                <span>+</span> Transaksi Baru
+            <a href="{{ route('transactions.create') }}" class="btn-primary" style="flex-shrink:0;white-space:nowrap;padding:9px 14px;font-size:13px;">
+                <span>+</span> <span class="hidden sm:inline">Transaksi Baru</span><span class="sm:hidden">Baru</span>
             </a>
         </div>
 
         <!-- Page Content -->
-        <div style="padding:32px;">
+        <div style="padding:20px;">
             @if(session('success'))
-                <div style="margin-bottom:24px;display:flex;align-items:center;gap:10px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:500;">
+                <div style="margin-bottom:20px;display:flex;align-items:center;gap:10px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:500;">
                     <span>✅</span> {{ session('success') }}
                 </div>
             @endif
             @if(session('error'))
-                <div style="margin-bottom:24px;display:flex;align-items:center;gap:10px;background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:500;">
+                <div style="margin-bottom:20px;display:flex;align-items:center;gap:10px;background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:500;">
                     <span>❌</span> {{ session('error') }}
                 </div>
             @endif
@@ -174,6 +211,19 @@
         </div>
     </main>
 </div>
+
+<script>
+function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+</script>
 
 @stack('scripts')
 </body>
